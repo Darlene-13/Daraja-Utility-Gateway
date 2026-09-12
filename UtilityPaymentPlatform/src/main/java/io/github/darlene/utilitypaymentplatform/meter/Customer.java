@@ -12,8 +12,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
 
-
-@Entity(name = "customers")
+@Entity
+@Table(name = "customers")
 @Builder
 @AllArgsConstructor
 @Getter
