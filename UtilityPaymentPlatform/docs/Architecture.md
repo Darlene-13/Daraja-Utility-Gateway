@@ -88,14 +88,6 @@ Every transaction is assigned a correlation ID at creation, which I propagate th
 
 The reconciliation job and the outbox publisher both need to avoid two instances picking up the same row if I ever run more than one application instance. I use a `SELECT ... FOR UPDATE SKIP LOCKED` query for both, which lets multiple workers safely pull different rows off the same table without needing a separate broker.
 
-## Retry Policy
-
-**Decision:** Fixed-interval retry, three attempts roughly 500ms apart, on both STK push initiation and token issuance.
-
-**Context:** A customer is watching their phone during payment initiation, so a retry policy that waits minutes before re-trying again defeats the point of being fast. I prioritize speed over patience.
-
-**Consequences:** After three failed attempts I stop and mark the transaction `FAILED`, for initiation, or `FAILED_TOKEN_ISSUANCE, needs_review = true`, for token issuance, rather than retrying indefinitely. A customer whose STK Push fails after three quick attempts can simply try again, there is no value in silently retrying an interactive request the customer has already walked away from.
-
 ## Event Transport: Redis Streams
 
 **Decision:** Publish outbox events onto Redis Streams, consumed by the Token Service and Notification Service through consumer groups, sharing the same Redis cluster I use for caching.
@@ -119,5 +111,4 @@ I'm building Docker support, OpenAPI and Swagger documentation, rate limiting, b
 
 
 ## N/B
-
-When does Safaricom authorize for a reversal ?
+**Retries**: When it comes to Daraja API, I would rather fail fast and leave retries to the client because they will always retry.
