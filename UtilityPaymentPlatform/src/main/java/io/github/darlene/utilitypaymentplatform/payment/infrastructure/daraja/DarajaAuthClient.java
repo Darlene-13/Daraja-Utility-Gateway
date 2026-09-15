@@ -29,16 +29,11 @@ public class DarajaAuthClient {
     private String cachedToken;
     private Instant expiresAt = Instant.EPOCH;
 
-
-    // Every part calls when it needs a token
     public synchronized String getAccessToken() {
         Instant now = Instant.now();
-
-        // Do we have something we can use ..
         if (cachedToken != null && now.isBefore(expiresAt.minusSeconds(SAFETY_MARGIN_SECONDS))) {
             return cachedToken;
         }
-
         return refreshToken();
     }
 
