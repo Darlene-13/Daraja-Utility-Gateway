@@ -1,6 +1,6 @@
 package io.github.darlene.utilitypaymentplatform.payment.domain;
 
-
+import io.github.darlene.utilitypaymentplatform.Meter.meter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,9 +23,9 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Column(name = "meter_id", unique = true, nullable = false)
-    private UUID meterId;
+    private Meter meter;
 
     @Column(name = "customer_id", nullable = false, unique = true)
     private UUID customerId;

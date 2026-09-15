@@ -5,11 +5,15 @@ import org.hibernate.validator.constraints.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface TransactionRepository extends JpaRepository <Transaction, Long> {
 
     Transaction findById(UUID id);
 
     Transaction findByCheckoutRequestId(String checkOutRequestId);  // Needed by checkOutRequestId
+
+    Optional<Transaction> existsByPhoneNumberAndStatus(String phoneNumber,Status PENDING_CONFIRMATION);
 
 }
