@@ -1,11 +1,14 @@
 package io.github.darlene.utilitypaymentplatform.payment.domain;
 
-import io.github.darlene.utilitypaymentplatform.Meter.meter;
+import io.github.darlene.utilitypaymentplatform.meter.Meter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.validator.constraints.UUID;
+
 import java.time.OffsetDateTime;
 
 @Entity
@@ -24,10 +27,11 @@ public class Transaction {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "meter_id", unique = true, nullable = false)
+    @JoinColumn(name = "meter_id", unique = true, nullable = false)
     private Meter meter;
 
-    @Column(name = "customer_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "customer_id", nullable = false, unique = true)
     private UUID customerId;
 
     @Column(name = "amount", nullable = false, unique = true)
@@ -38,8 +42,8 @@ public class Transaction {
     @NotNull
     private String phoneNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    @NotBlank
     private Status status;
 
     @Column(name = "merchant_request_id")
@@ -57,6 +61,7 @@ public class Transaction {
     @Column(name = "failure_reason", nullable = false, unique = true)
     private String failureReason;
 
+    @Version
     @Column(name = "version", nullable = false)
     @NotNull
     private String version;

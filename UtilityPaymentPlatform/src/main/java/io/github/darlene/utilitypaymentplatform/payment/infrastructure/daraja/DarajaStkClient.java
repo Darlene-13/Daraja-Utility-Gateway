@@ -32,7 +32,7 @@ public class DarajaStkClient {
     public StkResult initiateStkPush(Transaction transaction){
         String token = darajaAuthClient.getAccessToken();
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmSS"));
-        String password = generatePassword(timestamp)
+        String password = generatePassword(timestamp);
         //Build the initiate stk body
         //Use linkedhashmap because we maintain the insertion order
         Map<String, Object> stkRequest = new LinkedHashMap<>();
@@ -45,10 +45,10 @@ public class DarajaStkClient {
         stkRequest.put("PartyB", shortCode);
         stkRequest.put("PhoneNumber", transaction.getPhoneNumber());
         stkRequest.put("CallBackURL", callBackUrl);
-        stkRequest.put("AmountReference", transaction.getMeterId()); // Confirm
+        stkRequest.put("AmountReference", transaction.getMeter()); // Confirm
         stkRequest.put("TransactionDesc", "Utility payment");
 
-        return
+        return callWithRetry();
 
     }
 
@@ -57,6 +57,10 @@ public class DarajaStkClient {
         byte[] getBytes = raw.getBytes(StandardCharsets.UTF_8);
         String encodedPassword = Base64.getEncoder().encodeToString(getBytes);
         return encodedPassword;
+    }
+
+    private StkResult callWithRetry(){
+
     }
 
 
