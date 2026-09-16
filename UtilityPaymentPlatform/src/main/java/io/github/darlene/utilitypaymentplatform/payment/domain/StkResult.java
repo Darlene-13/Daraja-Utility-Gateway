@@ -6,11 +6,11 @@ public record StkResult(
         String checkoutRequestId,
         String errorMessage
 ) {
-    static StkResult success(String merchantRequestId, String checkoutRequestId) {
+    public static StkResult success(String merchantRequestId, String checkoutRequestId) {
         return new StkResult(true, merchantRequestId, checkoutRequestId, null);
     }
 
-    static StkResult failure(String errorMessage) {
+    public static StkResult failure(String errorMessage) {
         return new StkResult(false, null, null, errorMessage);
     }
 }
