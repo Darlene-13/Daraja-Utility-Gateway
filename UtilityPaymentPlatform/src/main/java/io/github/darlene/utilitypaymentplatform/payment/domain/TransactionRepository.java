@@ -10,10 +10,10 @@ import java.util.Optional;
 @Repository
 public interface TransactionRepository extends JpaRepository <Transaction, Long> {
 
-    Transaction findById(UUID id);
+    Optional<Transaction> findById(UUID id);
 
     Transaction findByCheckoutRequestId(String checkOutRequestId);  // Needed by checkOutRequestId
 
-    Optional<Transaction> existsByPhoneNumberAndStatus(String phoneNumber,Status PENDING_CONFIRMATION);
+    boolean existsByPhoneNumberAndStatus(String phoneNumber, Status PENDING_CONFIRMATION);
 
 }
