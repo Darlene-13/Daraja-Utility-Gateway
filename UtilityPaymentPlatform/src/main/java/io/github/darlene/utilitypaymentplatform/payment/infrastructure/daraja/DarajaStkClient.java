@@ -34,7 +34,12 @@ public class DarajaStkClient {
     public final DarajaAuthClient darajaAuthClient;
     public final int MAX_ATTEMPTS = 3; //For DNS connections
     public final int RETRY_DELAY_MS = 500;
-    public HttpClient client = HttpClient.newHttpClient();
+    public HttpClient client;
+
+    {
+        HttpClient.newHttpClient();
+    }
+
     private final ObjectMapper objectMapper;
 
 
@@ -122,8 +127,8 @@ public class DarajaStkClient {
                 DarajaStkResponse.class
         );
 
-        //Daraja level
-        // Did daraja accept the request
+        //Dara level
+        // Did data accept the request
         if (!darajaResponse.ResponseCode().equals("0")){
             return StkResult.failure(darajaResponse.ResponseDescription());
         }
