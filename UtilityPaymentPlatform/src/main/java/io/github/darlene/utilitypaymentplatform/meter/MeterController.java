@@ -16,7 +16,6 @@ public class MeterController {
 
     private final MeterValidationService meterValidationService;
 
-
     @GetMapping("/{meterNumber}")
     public MeterResponse getMeter(@PathVariable String meterNumber){
 
