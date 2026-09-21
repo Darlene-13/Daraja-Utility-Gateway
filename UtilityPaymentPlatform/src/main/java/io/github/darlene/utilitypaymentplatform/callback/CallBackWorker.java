@@ -21,26 +21,27 @@ public class CallBackWorker {
     private final ObjectMapper objectMapper;
 
     //Save dedupe and write outbox needs to happen as one db transaction: ATOMICITY.
-    //On message does not to db transactional checks it does stream mechanics: receiving, parsing, acknowledging and delegating to the db part
-    public void onMessage(StreamMessage<String, String> streamMessage){
+//    //On message does not to db transactional checks it does stream mechanics: receiving, parsing, acknowledging and delegating to the db part
+//    public void onMessage(StreamMessage<String, String> streamMessage) {
+//
+//        String rawJson = streamMessage.getValue().get("payload");
+//
+//        CallbackPayload payload = parsePayload(rawJson);
+//
+//        processCallback(payload);
+//
+//        acknowledge(streamMessage.getId());
+//
+//
+//    }
+//
+//    private void acknowledge(String id) {
+//    }
+//
+//    private void processCallback(CallbackPayload payload) {
+//    }
+//
+//    private CallbackPayload parsePayload(String rawJson) {
+//    }
 
-        String rawJson = streamMessage.getValue().get("payload");
-        
-        CallbackPayload payload = parsePayload(rawJson);
-        
-        processCallback(payload);
-        
-        acknowledge(streamMessage.getId());
-        
-
-    }
-
-    private void acknowledge(String id) {
-    }
-
-    private void processCallback(CallbackPayload payload) {
-    }
-
-    private CallbackPayload parsePayload(String rawJson) {
-    }
-
+}

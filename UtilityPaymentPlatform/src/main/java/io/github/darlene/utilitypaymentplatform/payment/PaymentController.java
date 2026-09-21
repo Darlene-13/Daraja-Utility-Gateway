@@ -29,6 +29,8 @@ public class PaymentController {
 
     }
 
+
+    // Gets back to user client
     @GetMapping("/{id}")
     public ResponseEntity<PaymentResponse> getPayment(@PathVariable UUID id) {
         Transaction transaction = transactionRepository.findById(id)
