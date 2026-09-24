@@ -35,8 +35,11 @@ public class CallBackWorker implements StreamListener<String, MapRecord<String, 
         processCallback(payload);
         acknowledge(String.valueOf(streamMessage.getId()));
     }
-
-
+    //Why do we have to acknowledge
+    //Redis guarantees message delivery therefore we need to acknowledge after a message is processed so that
+    // Redis can know and take the next message from the stream, and it won't be able to share entries
+    // to other consumers?
+    //XACK messages group 1526984818136-0
     private void acknowledge(String id) {
     }
 

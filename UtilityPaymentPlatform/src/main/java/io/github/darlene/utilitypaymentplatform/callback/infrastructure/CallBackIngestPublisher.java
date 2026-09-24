@@ -17,7 +17,10 @@ public class CallBackIngestPublisher {
     private final String streamName;
     // Callback ingest is the stream
 
-    public void publish(String rawPayload){
+    public void publishPayment(String rawPayload){
+
+        //.getValues  ...... Map<String, String> message = streamMessage.getValue()
+        //Which returns now the payload, checkout requestid and status
         Map<String, String> message = Map.of(
                 "payload", rawPayload
         );

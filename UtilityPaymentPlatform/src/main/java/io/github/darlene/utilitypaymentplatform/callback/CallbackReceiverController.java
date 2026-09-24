@@ -12,7 +12,7 @@ public class CallbackReceiverController {
 
     public ResponseEntity<Void> receiveStkCallback(String rawPayLoad){
         try{
-            callBackIngestPublisher.publish(rawPayLoad);
+            callBackIngestPublisher.publishPayment(rawPayLoad);
             return ResponseEntity.ok().build();
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
