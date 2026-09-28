@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 public interface TokenIssuer {
 
-    public MeterType supporttedMeterType();
+    public MeterType supportedMeterType();
 
     public TokenResult issueToken(String meterNumber, BigDecimal amount);
 

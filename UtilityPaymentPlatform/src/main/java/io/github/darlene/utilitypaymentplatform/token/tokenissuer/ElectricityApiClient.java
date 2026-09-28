@@ -9,12 +9,12 @@ import java.math.BigDecimal;
 public class ElectricityApiClient implements TokenIssuer{
 
     @Override
-    public MeterType supporttedMeterType() {
-        return null;
+    public MeterType supportedMeterType() {
+        return MeterType.Electricity;
     }
 
     @Override
     public TokenResult issueToken(String meterNumber, BigDecimal amount) {
-        return null;
+        return TokenResult.success("ELEC-" + meterNumber + "-" +  amount);
     }
 }

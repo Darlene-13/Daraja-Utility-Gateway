@@ -7,12 +7,12 @@ import java.math.BigDecimal;
 
 public class WaterApiClient implements TokenIssuer{
     @Override
-    public MeterType supporttedMeterType() {
-        return null;
+    public MeterType supportedMeterType() {
+        return MeterType.Water;
     }
 
     @Override
     public TokenResult issueToken(String meterNumber, BigDecimal amount) {
-        return null;
+        return TokenResult.success("WATER-" + meterNumber + "-" + amount);
     }
 }
