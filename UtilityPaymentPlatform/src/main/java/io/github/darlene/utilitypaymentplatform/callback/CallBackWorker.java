@@ -4,8 +4,9 @@ package io.github.darlene.utilitypaymentplatform.callback;
 import io.github.darlene.utilitypaymentplatform.callback.infrastructure.CallBacklogRepository;
 import io.github.darlene.utilitypaymentplatform.common.OutboxEventRepository;
 import io.github.darlene.utilitypaymentplatform.payment.domain.TransactionRepository;
-import io.lettuce.core.StreamMessage;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -18,8 +19,17 @@ public class CallBackWorker implements StreamListener<String, MapRecord<String, 
     private final TransactionRepository transactionRepository; //Find by checkout request id to locate the right transaction
     private final CallBacklogRepository callBacklogRepository;  // Dedupes through save and catch
     private final StringRedisTemplate redisTemplate;  // Reads from the stream published by callback ingest publisher
-    private final String streamName;   // callback - ingest
-    private final String consumerGroupName; // identifies the worker as part of the shared group.
+
+    @Value("${token.stream-name}")
+    private final String streamName;
+
+    @Value("${token.consumer-group}")
+    private final String consumerGroupName;
+
+    @Value("${token.consumer-name}")
+    private final String consumerName;
+
+
     private final ObjectMapper objectMapper;
 
     //Save dedupe and write outbox needs to happen as one db transaction: ATOMICITY.
@@ -28,12 +38,17 @@ public class CallBackWorker implements StreamListener<String, MapRecord<String, 
     // Redis streaming offers more data persistence as compared to Redis pub/sub
     //Map record is basically one Redis stream entry
     @Override
-    public void onMessage(MapRecord<String, String, String> streamMessage) {
+    public void onMessage(MapRecord<String, String, String> record) {
+        handle(record);
+    }
 
-        String rawJson = streamMessage.getValue().get("payload");
-        CallbackPayload payload = parsePayload(rawJson);
-        processCallback(payload);
-        acknowledge(String.valueOf(streamMessage.getId()));
+    private void handle(MapRecord<String, String, String> streamMessage){
+        try{
+            String rawJson = streamMessage.getValue().get("payload");
+            CallbackPayload payload = parsePayload(rawJson);
+            processCallback.process(payload);
+            acknowledge(String.valueOf(streamMessage.getId()));
+        }
     }
     //Why do we have to acknowledge
     //Redis guarantees message delivery therefore we need to acknowledge after a message is processed so that
@@ -43,8 +58,13 @@ public class CallBackWorker implements StreamListener<String, MapRecord<String, 
     private void acknowledge(String id) {
     }
 
-    private void processCallback(CallbackPayload payload) {
-
+    @Transactional
+    private void processCallback() {
+        try{
+            callBacklogRepository.save(
+                    new CallBacklog()
+            );
+        }
     }
 
     private CallbackPayload parsePayload(String rawJson) {

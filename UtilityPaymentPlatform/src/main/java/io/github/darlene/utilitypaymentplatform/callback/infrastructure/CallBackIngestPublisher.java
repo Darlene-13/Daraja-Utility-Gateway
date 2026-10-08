@@ -20,7 +20,7 @@ public class CallBackIngestPublisher {
     public void publishPayment(String rawPayload){
 
         //.getValues  ...... Map<String, String> message = streamMessage.getValue()
-        //Which returns now the payload, checkout requestid and status
+        //Which returns now the payload, checkout requested and status
         Map<String, String> message = Map.of(
                 "payload", rawPayload
         );
