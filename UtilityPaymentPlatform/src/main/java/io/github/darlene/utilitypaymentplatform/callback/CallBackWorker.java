@@ -28,9 +28,6 @@ public class CallBackWorker implements StreamListener<String, MapRecord<String, 
     @Value("${token.consumer-group}")
     private final String consumerGroupName;
 
-    @Value("${token.consumer-name}")
-    private final String consumerName;
-
 
     private final ObjectMapper objectMapper;
 
