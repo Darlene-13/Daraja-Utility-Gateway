@@ -32,7 +32,9 @@ CREATE TABLE transactions (
                               correlation_id       UUID          NOT NULL,
                               token                VARCHAR(50),
                               failure_reason       VARCHAR(255),
+                              needs_review BOOLEAN NOT NULL DEFAULT FALSE,
                               version              INTEGER       NOT NULL DEFAULT 0,
+                              mpesa_receipt_number VARCHAR(30),
                               created_at           TIMESTAMPTZ   NOT NULL DEFAULT now(),
                               updated_at           TIMESTAMPTZ   NOT NULL DEFAULT now()
 );

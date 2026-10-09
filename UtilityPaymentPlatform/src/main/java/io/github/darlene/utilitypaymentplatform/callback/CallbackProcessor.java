@@ -49,6 +49,7 @@ public class CallbackProcessor {
 
         if (payload.success()) {
             transaction.setStatus(Status.PAID);
+            transaction.setMpesaReceiptNumber(payload.mpesaReceiptNumber());
         } else {
             transaction.setStatus(Status.FAILED);
             transaction.setFailureReason(payload.errorMessage());

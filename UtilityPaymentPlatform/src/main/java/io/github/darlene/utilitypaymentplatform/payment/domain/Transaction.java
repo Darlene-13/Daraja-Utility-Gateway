@@ -68,11 +68,13 @@ public class Transaction {
     @Column(name = "needs_review", nullable = false)
     private boolean needsReview = false;
 
-
     @Version
     @Column(name = "version", nullable = false)
     @NotNull
     private int version;
+
+    @Column(name = "mpesa_receipt_number", length = 30)
+    private String mpesaReceiptNumber;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
