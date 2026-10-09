@@ -5,12 +5,9 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
 
 @Repository
-public interface TransactionRepository extends JpaRepository <Transaction, Long> {
-
-    Optional<Transaction> findById(UUID id);
+public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
     Transaction findByCheckoutRequestId(String checkOutRequestId);  // Needed by checkOutRequestId
 

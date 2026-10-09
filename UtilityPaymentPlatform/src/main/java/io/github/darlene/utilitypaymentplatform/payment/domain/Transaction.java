@@ -74,18 +74,25 @@ public class Transaction {
     @NotNull
     private int version;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
+
     public Transaction() {
 
     }
 
     @PrePersist
     void onCreate(){
-        @NotNull OffsetDateTime createdAt = OffsetDateTime.now();
-        @NotNull OffsetDateTime updatedAt = OffsetDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
     @PreUpdate
     void onUpdate(){
-        @NotNull OffsetDateTime updatedAt = OffsetDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
     }
 }
