@@ -7,8 +7,8 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
 
@@ -16,25 +16,24 @@ import java.time.OffsetDateTime;
 @Table(name = "customers")
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 public class Customer{
 
 
     @Id
-    @UUID
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "full-name", nullable = false)
+    @Column(name = "full_name", nullable = false)
     @NotNull
     private String fullName;
 
-    @Column(name = "phone-number", nullable = false, unique = true, length = 15)
+    @Column(name = "phone_number", nullable = false, unique = true, length = 15)
     private String phoneNumber;
 
-    @CreationTimestamp
-    @Column(name = "created-at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @PrePersist

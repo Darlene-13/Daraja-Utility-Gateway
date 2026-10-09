@@ -4,17 +4,16 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import java.util.UUID;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
 
-@Entity(name = "meter")
-@Getter @Setter @AllArgsConstructor
+@Entity
+@Table(name = "meters")
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor
 public class Meter{
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @UUID
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @Column(name = "meter_number", nullable = false, unique = true, length = 50)
     private String meterNumber;
