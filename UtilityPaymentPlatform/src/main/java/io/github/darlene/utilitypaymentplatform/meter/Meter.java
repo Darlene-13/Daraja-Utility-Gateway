@@ -3,7 +3,7 @@ package io.github.darlene.utilitypaymentplatform.meter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
