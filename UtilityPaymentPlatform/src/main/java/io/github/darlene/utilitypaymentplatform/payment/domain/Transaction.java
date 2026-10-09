@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -28,18 +28,18 @@ public class Transaction {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "meter_id", unique = true, nullable = false)
+    @JoinColumn(name = "meter_id", nullable = false)
     private Meter meter;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "customer_id", nullable = false, unique = true)
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
     @Column(name = "amount", nullable = false, precision = 12, scale = 2)
     @NotNull
     private BigDecimal amount;
 
-    @Column(name = "phone_number", nullable = false, unique = true)
+    @Column(name = "phone_number", nullable = false)
     @NotNull
     private String phoneNumber;
 
@@ -50,16 +50,16 @@ public class Transaction {
     @Column(name = "merchant_request_id", length = 50)
     private String merchantRequestId;
 
-    @Column(name = "checkout_request_id", nullable = false, unique = true, length=50)
+    @Column(name = "checkout_request_id", unique = true, length=50)
     private String checkoutRequestId;
 
-    @Column(name = "correlation_id", nullable = false, unique = true)
+    @Column(name = "correlation_id", unique = true)
     private UUID correlationId;
 
     @Column(name = "token", nullable = false, unique = true, length = 50)
     private String token;
 
-    @Column(name = "failure_reason", nullable = false, length = 255)
+    @Column(name = "failure_reason", length = 255)
     private String failureReason;
 
     // Flips to true only when retries are exhausted and a human needs to look
@@ -72,7 +72,7 @@ public class Transaction {
     @Version
     @Column(name = "version", nullable = false)
     @NotNull
-    private String version;
+    private int version;
 
     public Transaction() {
 

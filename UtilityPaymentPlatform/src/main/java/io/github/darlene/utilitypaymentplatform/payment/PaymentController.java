@@ -5,7 +5,7 @@ import io.github.darlene.utilitypaymentplatform.payment.domain.*;
 import io.github.darlene.utilitypaymentplatform.payment.exception.TransactionNotFoundException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

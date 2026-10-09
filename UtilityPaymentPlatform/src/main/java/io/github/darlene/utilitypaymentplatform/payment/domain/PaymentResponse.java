@@ -1,6 +1,6 @@
 package io.github.darlene.utilitypaymentplatform.payment.domain;
 
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 
 public record PaymentResponse(
         UUID transactionId,
