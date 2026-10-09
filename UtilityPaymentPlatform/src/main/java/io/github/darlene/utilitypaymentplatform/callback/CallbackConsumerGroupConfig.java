@@ -37,7 +37,7 @@ public class CallbackConsumerGroupConfig {
             StringRedisTemplate redisTemplate,
             TokenWorker tokenWorker
     ){
-        //Create a group if mission
+        //Create a group if missing
         createdGroupIfMissing(redisTemplate);
 
         var options = StreamMessageListenerContainer.StreamMessageListenerContainerOptions.builder()

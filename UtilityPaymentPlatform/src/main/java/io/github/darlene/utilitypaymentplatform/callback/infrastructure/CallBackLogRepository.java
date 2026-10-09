@@ -1,12 +1,12 @@
 package io.github.darlene.utilitypaymentplatform.callback.infrastructure;
 
-import io.github.darlene.utilitypaymentplatform.callback.CallBacklog;
+import io.github.darlene.utilitypaymentplatform.callback.CallbackLog;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CallBacklogRepository extends JpaRepository <CallBacklog, UUID> {
+public interface CallBackLogRepository extends JpaRepository <CallbackLog, UUID> {
 
     // For dedupes to the database.
     // Takes the .save method from jpa repository

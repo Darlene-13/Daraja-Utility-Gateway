@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
-public class CallBacklog {
+public class CallbackLog {
 
     @Id
     @GeneratedValue
@@ -25,7 +25,7 @@ public class CallBacklog {
 
     @NotNull
     @Column(name = "checkout_request_id", nullable = false, length = 50)
-    private String checkOutRequestId;
+    private String checkoutRequestId;
 
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -39,6 +39,7 @@ public class CallBacklog {
     void onCreate(){
         this.receivedAt = OffsetDateTime.now();
     }
+
 
 
 }

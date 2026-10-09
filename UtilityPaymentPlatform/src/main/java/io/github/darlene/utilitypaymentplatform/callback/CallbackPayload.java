@@ -1,5 +1,5 @@
 package io.github.darlene.utilitypaymentplatform.callback;
 
 public record CallbackPayload(
-        String checkoutRequestId, String resultCode) {
+        String checkoutRequestId, boolean success, String errorMessage, String mpesaReceiptNumber) {
 }
