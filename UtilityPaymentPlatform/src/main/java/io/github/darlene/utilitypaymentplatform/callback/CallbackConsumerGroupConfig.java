@@ -1,6 +1,5 @@
 package io.github.darlene.utilitypaymentplatform.callback;
 
-import io.github.darlene.utilitypaymentplatform.token.TokenWorker;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,20 +21,20 @@ import java.time.Duration;
 public class CallbackConsumerGroupConfig {
 
 
-    @Value("${token.stream-name}")
+    @Value("${callback.stream-name}")
     private final String streamName;
 
-    @Value("${token.consumer-group}")
+    @Value("${callback.consumer-group}")
     private final String consumerGroupName;
 
-    @Value("${token.consumer-name}")
+    @Value("${callback.consumer-name}")
     private final String consumerName;
 
     @Bean
-    public StreamMessageListenerContainer<String, MapRecord<String, String, String>> tokenGroupContainer(
+    public StreamMessageListenerContainer<String, MapRecord<String, String, String>> callbackGroupContainer(
             RedisConnectionFactory connectionFactory,
             StringRedisTemplate redisTemplate,
-            TokenWorker tokenWorker
+            CallBackWorker callBackWorker
     ){
         //Create a group if missing
         createdGroupIfMissing(redisTemplate);
@@ -54,7 +53,7 @@ public class CallbackConsumerGroupConfig {
                 .cancelOnError(t -> false)
                 .build();
 
-        container.register(request, tokenWorker);
+        container.register(request, callBackWorker);
         return container;
 
     }
@@ -67,7 +66,7 @@ public class CallbackConsumerGroupConfig {
                             streamName.getBytes(), consumerGroupName, ReadOffset.from("0"), true)
                     );
         } catch (RedisSystemException e){
-            boolean busy = String.valueOf(e.getMessage()).contains("BUSY GROUP")
+            boolean busy = String.valueOf(e.getMessage()).contains("BUSYGROUP")
                     || (e.getCause() != null && String.valueOf(e.getCause().getMessage()).contains("BUSYGROUP"));
 
             if(!busy) throw e;  //Busy group means that the group already exists.
