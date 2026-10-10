@@ -13,22 +13,28 @@ ends up with a token or with a person looking at their case, never silently stuc
 ## Status
 
 Version 1 works end to end against the Daraja sandbox: STK push -> callback -> token in
-about 13 seconds, with a real KES 1 payment.
+about 13 seconds, with a real KES 1 payment. A USSD menu (Africa's Talking sandbox) is a
+second way in and reaches Daraja through the same payment flow.
+
+**This project is paused here.** Its goal was to learn and test Safaricom STK push end to
+end, and that goal is met. Work resumes once the Go notification service exists, so tokens
+can be sent to customers by SMS. See [Next steps](#next-steps).
 
 | Built | Not built yet |
 |---|---|
 | Payment API with per-phone rate limiting and one-pending-payment guard | Token delivery to the customer (SMS, via a separate Go notification service) |
-| STK push, retried only when Daraja was never reached | USSD channel for customers |
+| STK push, retried only when Daraja was never reached | STK push sent after the USSD session closes (see Next steps) |
 | Callback receiver -> Redis stream -> worker with dedupe, retries and dead-lettering | Real KPLC / water provider integration (tokens are simulated) |
 | Transactional outbox -> Redis streams | Callback hardening (IP allowlist, secret path) |
 | Token worker with idempotency key, retries and dead-lettering | Correlation id propagation through logs, PII masking in logs |
 | Reconciliation job for callbacks that never arrive | Docker, OpenAPI docs |
 | Dead-letter monitor that logs when anything needs a person | |
+| USSD menu via Africa's Talking (`POST /api/v1/ussd`) | |
 
 ## How a payment flows
 
 ```
-POST /api/v1/payment/
+POST /api/v1/payment/   or   USSD *384*35132# -> AT -> POST /api/v1/ussd
   -> rate limit -> pending check -> meter lookup -> save INITIATED -> STK push -> PENDING_CONFIRMATION
 Safaricom -> POST /api/v1/callback/stk -> stream mpesa-callbacks
   -> CallBackWorker -> PAID or FAILED + outbox row (one DB transaction)
@@ -166,6 +172,43 @@ FROM transactions WHERE id = '<transactionId>';
 - If the customer has too little balance, a Fuliza screen appears before the PIN and can
   use up the prompt's time limit.
 
+## Paying by USSD (Africa's Talking)
+
+USSD is a second way in. `UssdController` receives Africa's Talking's form fields and
+`UssdMenuService` calls the same `InitiatePaymentUseCase` as the REST API, so everything
+after the STK push (callback, reconciliation, token) is shared.
+
+```
+*384*35132#
+  -> CON Pay for: 1. Electricity 2. Water
+  -> 1            -> CON Enter meter number
+  -> MTR-0002     -> CON Enter amount (KES)      (meter must exist and match the chosen type)
+  -> 50           -> END Check your phone for the M-Pesa prompt ...
+```
+
+Nothing is stored between key presses: AT sends everything typed so far in `text`
+(for example `1*MTR-0002*50`) and the screen is worked out from that. Errors (unknown
+meter, wrong meter type, bad amount, rate limit, payment already pending) come back as
+`END` messages, because AT can only show text.
+
+### Setting up the sandbox channel
+
+1. Create an account at africastalking.com and open the Sandbox.
+2. USSD -> Create Channel. Sandbox codes look like `*384*<number>#`; pick a free number.
+3. Callback URL: `https://<your-ngrok-address>/api/v1/ussd`.
+4. Launch the simulator, enter a phone number and dial the code.
+
+The current sandbox channel is `*384*35132#`. Free ngrok changes its address on restart,
+so update the AT callback URL and `DARAJA_CALLBACK_URL` together.
+
+Test the menu without AT (no payment is sent until the amount step):
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/ussd \
+  -d sessionId=test1 -d 'serviceCode=*384*35132#' \
+  -d phoneNumber=+2547XXXXXXXX --data-urlencode 'text=1*MTR-0001'
+```
+
 ## Configuration
 
 All in `UtilityPaymentPlatform/src/main/resources/application.properties`.
@@ -216,3 +259,25 @@ redis-cli xadd payment-events '*' outboxId <outboxId> eventType PAYMENT_CONFIRME
 # once the transaction shows TOKEN_ISSUED, remove the dead-letter entry
 redis-cli xdel payment-events:token-dead <entry-id>
 ```
+
+## Next steps
+
+When the project resumes:
+
+1. **Notification service (Go).** Consume `notification-events` and send SMS through
+   Africa's Talking: the token on `TOKEN_ISSUED`, an apology on `PAYMENT_FAILED` and
+   `TOKEN_ISSUANCE_FAILED`.
+2. **Put the phone number in the events.** `TOKEN_ISSUED` only carries `transactionId`,
+   `token` and `units`. Add `phoneNumber` and `meterNumber` in `TokenProcessor` (and the
+   failed events in `CallbackProcessor`) so the Go service never reads this database.
+3. **Send the STK push after the USSD session ends.** The push is sent before the `END`
+   reply, and on some phones the prompt cannot appear while a USSD session is open. Reply
+   first, then start the payment asynchronously.
+4. **`PaymentAlreadyInFlightException` should extend `TooManyRequestsException`.** It
+   extends `RuntimeException`, so the REST API answers `500` instead of `429` when a payment
+   is already pending. After changing it, catch the subclass first in `UssdMenuService.pay()`.
+5. **Numeric meter numbers.** Phone USSD keypads usually type digits only, so `MTR-0002` is
+   hard to enter on a real handset. Real KPLC meter numbers are numeric.
+6. **Small cleanups:** remove the empty `Transaction.setToken(String, BigDecimal, String)`,
+   and the stray `//p;` in `UssdMenuService`.
+7. Items from the "Not built yet" table above.
