@@ -4,6 +4,7 @@ import io.github.darlene.utilitypaymentplatform.meter.MeterType;
 import io.github.darlene.utilitypaymentplatform.token.TokenIssueException;
 import io.github.darlene.utilitypaymentplatform.token.TokenResult;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -12,7 +13,9 @@ import org.springframework.web.client.RestClientException;
 import java.math.BigDecimal;
 import java.time.Duration;
 
+// Only when a provider URL is configured, otherwise SimulatedTokenIssuerConfig stands in
 @Component
+@ConditionalOnExpression("!'${water.api.base-url:}'.isBlank()")
 public class WaterApiClient implements TokenIssuer {
 
     private final RestClient restClient;
