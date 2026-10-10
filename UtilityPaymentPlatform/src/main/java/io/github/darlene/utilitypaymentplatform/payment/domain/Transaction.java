@@ -56,8 +56,15 @@ public class Transaction {
     @Column(name = "correlation_id", unique = true)
     private UUID correlationId;
 
-    @Column(name = "token", nullable = false, unique = true, length = 50)
+    // Null until the token worker has issued a token for this payment
+    @Column(name = "token", unique = true, length = 50)
     private String token;
+
+    @Column(name = "token_units", precision = 12, scale = 2)
+    private BigDecimal tokenUnits;
+
+    @Column(name = "token_provider_reference", length = 100)
+    private String tokenProviderReference;
 
     @Column(name = "failure_reason", length = 255)
     private String failureReason;
@@ -96,5 +103,23 @@ public class Transaction {
     @PreUpdate
     void onUpdate(){
         this.updatedAt = OffsetDateTime.now();
+    }
+
+    public void markTokenIssued(String token, BigDecimal units, String providerReference) {
+        this.token = token;
+        this.tokenUnits = units;
+        this.tokenProviderReference = providerReference;
+        this.status = Status.TOKEN_ISSUED;
+    }
+
+    // Retries are used up or the token can never be issued. needsReview puts the row
+    // on the logical dead letter list so someone can vend by hand or refund.
+    public void markTokenIssuanceFailed(String reason) {
+        this.status = Status.FAILED_TOKEN_ISSUANCE;
+        this.failureReason = reason != null && reason.length() > 255 ? reason.substring(0, 255) : reason;
+        this.needsReview = true;
+    }
+
+    public void setToken(String token, BigDecimal units, String s) {
     }
 }
