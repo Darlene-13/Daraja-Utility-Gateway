@@ -262,24 +262,5 @@ redis-cli xadd payment-events '*' outboxId <outboxId> eventType PAYMENT_CONFIRME
 redis-cli xdel payment-events:token-dead <entry-id>
 ```
 
-## Next steps
-
-When the project resumes:
-
-1. **Notification service (Go).** Consume `notification-events` and send SMS through
-   Africa's Talking: the token on `TOKEN_ISSUED`, an apology on `PAYMENT_FAILED` and
-   `TOKEN_ISSUANCE_FAILED`.
-2. **Put the phone number in the events.** `TOKEN_ISSUED` only carries `transactionId`,
-   `token` and `units`. Add `phoneNumber` and `meterNumber` in `TokenProcessor` (and the
-   failed events in `CallbackProcessor`) so the Go service never reads this database.
-3. **Send the STK push after the USSD session ends.** The push is sent before the `END`
-   reply, and on some phones the prompt cannot appear while a USSD session is open. Reply
-   first, then start the payment asynchronously.
-4. **`PaymentAlreadyInFlightException` should extend `TooManyRequestsException`.** It
-   extends `RuntimeException`, so the REST API answers `500` instead of `429` when a payment
-   is already pending. After changing it, catch the subclass first in `UssdMenuService.pay()`.
-5. **Numeric meter numbers.** Phone USSD keypads usually type digits only, so `MTR-0002` is
-   hard to enter on a real handset. Real KPLC meter numbers are numeric.
-6. **Small cleanups:** remove the empty `Transaction.setToken(String, BigDecimal, String)`,
-   and the stray `//p;` in `UssdMenuService`.
-7. Items from the "Not built yet" table above.
+## WRITTEN BY:
+Darlene Wendy
