@@ -1,21 +1,58 @@
 package io.github.darlene.utilitypaymentplatform.token.tokenissuer;
 
-import io.github.darlene.utilitypaymentplatform.token.MeterType;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.github.darlene.utilitypaymentplatform.meter.MeterType;
+import io.github.darlene.utilitypaymentplatform.token.TokenIssueException;
 import io.github.darlene.utilitypaymentplatform.token.TokenResult;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 
-public class ElectricityApiClient implements TokenIssuer{
+@Component
+public class ElectricityApiClient implements TokenIssuer {
 
-    @Override
-    public MeterType supportedMeterType() {
-        return MeterType.Electricity;
+    private final RestClient restClient;
+
+    public ElectricityApiClient(@Value("${electricity.api.base-url}") String baseUrl) {
+        var factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(3));
+        factory.setReadTimeout(Duration.ofSeconds(10));
+        this.restClient = RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(factory)
+                .build();
     }
 
     @Override
-    public TokenResult issueToken(String meterNumber, BigDecimal amount) {
-
-
-        return TokenResult.success("ELEC-" + meterNumber + "-" +  amount);
+    public MeterType type() {
+        return MeterType.ELECTRICITY;
     }
+
+    @Override
+    public TokenResult issueToken(String meterNumber, BigDecimal amount, String reference) {
+        try {
+            ElectricityResponse resp = restClient.post()
+                    .uri("/vend")
+                    .header("Idempotency-Key", reference)
+                    .body(new ElectricityRequest(meterNumber, amount))
+                    .retrieve()
+                    .body(ElectricityResponse.class);
+
+            if (resp == null || resp.token() == null) {
+                throw new TokenIssueException("Electricity API returned no token for " + reference);
+            }
+            return new TokenResult(resp.token(), resp.kwh(), resp.receiptNo());
+        } catch (RestClientException e) {
+            throw new TokenIssueException("Electricity API call failed for " + reference, e);
+        }
+    }
+
+    // different field names from water on purpose: the interface hides this from the worker
+    private record ElectricityRequest(@JsonProperty("meter_no") String meterNo, BigDecimal amount) {}
+    private record ElectricityResponse(String token, BigDecimal kwh, @JsonProperty("receipt_no") String receiptNo) {}
 }

@@ -1,17 +1,10 @@
 package io.github.darlene.utilitypaymentplatform.token;
 
+import java.math.BigDecimal;
+
 public record TokenResult(
-        boolean success,
         String token,
-        String errorMessage
+        BigDecimal units,
+        String providerReference
 ) {
-
-    public static TokenResult success(String token){
-        return new TokenResult(true,token, null);
-    }
-
-
-    public static TokenResult failure(String errorMessage){
-        return new TokenResult(false, null, errorMessage);
-    }
 }
