@@ -10,6 +10,8 @@ import io.github.darlene.utilitypaymentplatform.payment.infrastructure.daraja.Da
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 
 @Service
 @AllArgsConstructor
@@ -49,6 +51,8 @@ public class InitiatePaymentUseCase {
         transaction.setAmount(paymentCommand.amount());
         transaction.setPhoneNumber(paymentCommand.phoneNumber());
         transaction.setStatus(Status.INITIATED);
+        // correlation_id is NOT NULL in the schema; CorrelationIdFilter is still empty, so make one here
+        transaction.setCorrelationId(UUID.randomUUID());
         return transactionRepository.save(transaction);
     }
 
