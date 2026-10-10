@@ -1,6 +1,7 @@
 package io.github.darlene.utilitypaymentplatform.callback.infrastructure;
 
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ public class CallBackIngestPublisher {
     //Once we have Redis spring boot starter we do not have to configure Redis config, spring does that automatically.
     // We use string Redis template because the callback is just a JSON string
     private final StringRedisTemplate redisTemplate;
+    @Value("${callback.stream-name}")
     private final String streamName;
     // Callback ingest is the stream
 
