@@ -3,17 +3,25 @@ package io.github.darlene.utilitypaymentplatform.payment.infrastructure;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import lombok.AllArgsConstructor;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@AllArgsConstructor
 public class FixedWindowRateLimiter implements RateLimiter {
 
     private final long windowSizeMs;
-    private final Cache<String, AtomicInteger> cache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMillis(windowSizeMs * 2)).build();
+    private final Cache<String, AtomicInteger> cache;
     private final int limit;
+
+    public FixedWindowRateLimiter(long windowSizeMs, int limit) {
+        if (windowSizeMs <= 0 || limit <= 0) {
+            throw new IllegalArgumentException("windowSizeMs and limit must be positive");
+        }
+        this.windowSizeMs = windowSizeMs;
+        this.limit = limit;
+        //Built here, not at the field, so windowSizeMs is already set when the expiry is computed
+        this.cache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMillis(windowSizeMs * 2)).build();
+    }
 
     @Override
     public boolean isAllowed(String key){

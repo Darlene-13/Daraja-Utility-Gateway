@@ -3,22 +3,28 @@ package io.github.darlene.utilitypaymentplatform.payment.infrastructure;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import lombok.AllArgsConstructor;
-import org.springframework.cache.annotation.EnableCaching;
 
 import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 
-@EnableCaching
-@AllArgsConstructor
 public class SlidingWindowRateLimiter implements RateLimiter{
 
-    //Use the expireAfterAccess to delete expired phone numbers instead of keeping them in the memory for so long.
-    private final Cache<String, Deque<Long>> cache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(10)).build();
+    private final Cache<String, Deque<Long>> cache;
     private final long limit;
     private final long windowSizeMs;
+
+    public SlidingWindowRateLimiter(long limit, long windowSizeMs) {
+        if (limit <= 0 || windowSizeMs <= 0) {
+            throw new IllegalArgumentException("limit and windowSizeMs must be positive");
+        }
+        this.limit = limit;
+        this.windowSizeMs = windowSizeMs;
+        //Use the expireAfterAccess to delete expired phone numbers instead of keeping them in the memory for so long.
+        //Expiry follows the window, a key idle for a full window has nothing left to count anyway.
+        this.cache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMillis(windowSizeMs)).build();
+    }
 
 
     @Override
