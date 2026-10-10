@@ -4,49 +4,61 @@ package io.github.darlene.utilitypaymentplatform.payment.infrastructure.daraja;
 import io.github.darlene.utilitypaymentplatform.payment.domain.DarajaStkResponse;
 import io.github.darlene.utilitypaymentplatform.payment.domain.StkResult;
 import io.github.darlene.utilitypaymentplatform.payment.domain.Transaction;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static java.lang.Thread.sleep;
-
-@AllArgsConstructor
 @Component
 public class DarajaStkClient {
 
-    public final String shortCode;  // Business playbill number side.
-    public final String passKey;
-    public final String stkPushUrl;
-    public final String callBackUrl;
-    public final DarajaAuthClient darajaAuthClient;
-    public final int MAX_ATTEMPTS = 3; //For DNS connections
-    public final int RETRY_DELAY_MS = 500;
-    public HttpClient client;
+    private static final int MAX_ATTEMPTS = 3; //For DNS connections
+    private static final int RETRY_DELAY_MS = 500;
 
-    {
-        HttpClient.newHttpClient();
-    }
-
+    private final String shortCode;  // Business playbill number side.
+    private final String passKey;
+    private final String stkPushUrl;
+    private final String callBackUrl;
+    private final DarajaAuthClient darajaAuthClient;
     private final ObjectMapper objectMapper;
+    private final HttpClient client = HttpClient.newHttpClient();
+
+    public DarajaStkClient(@Value("${daraja.shortcode}") String shortCode,
+                           @Value("${daraja.passkey}") String passKey,
+                           @Value("${daraja.stk-push-url}") String stkPushUrl,
+                           @Value("${daraja.callback-url}") String callBackUrl,
+                           DarajaAuthClient darajaAuthClient,
+                           ObjectMapper objectMapper) {
+        this.shortCode = shortCode;
+        this.passKey = passKey;
+        this.stkPushUrl = stkPushUrl;
+        this.callBackUrl = callBackUrl;
+        this.darajaAuthClient = darajaAuthClient;
+        this.objectMapper = objectMapper;
+    }
 
 
     //Method to initiate stk push, it takes the transaction in the db with the status INITIATED
     public StkResult initiateStkPush(Transaction transaction) throws InterruptedException {
         String token = darajaAuthClient.getAccessToken();
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // Daraja validates the timestamp in Kenyan time, whatever zone the server runs in
+        String timestamp = LocalDateTime.now(ZoneId.of("Africa/Nairobi"))
+                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String password = generatePassword(timestamp);
 
 
@@ -55,12 +67,14 @@ public class DarajaStkClient {
         stkRequest.put("Password", password);
         stkRequest.put("Timestamp", timestamp);
         stkRequest.put("TransactionType", "CustomerPayBillOnline");
-        stkRequest.put("Amount", transaction.getAmount());
-        stkRequest.put("partyA", transaction.getPhoneNumber());
+        // M-Pesa takes whole shillings only, PaymentRequest rejects amounts with cents
+        stkRequest.put("Amount", transaction.getAmount().intValueExact());
+        stkRequest.put("PartyA", transaction.getPhoneNumber());
         stkRequest.put("PartyB", shortCode);
         stkRequest.put("PhoneNumber", transaction.getPhoneNumber());
         stkRequest.put("CallBackURL", callBackUrl);
-        stkRequest.put("AmountReference", transaction.getMeter()); // Confirm
+        // The "account number" the customer sees on the prompt, max 12 characters
+        stkRequest.put("AccountReference", transaction.getMeter().getMeterNumber());
         stkRequest.put("TransactionDesc", "Utility payment");
 
         return callWithRetry(stkRequest, token);
@@ -99,14 +113,19 @@ public class DarajaStkClient {
                 return parseResponse(response);
 
 
-            } catch (IOException e){
+            } catch (ConnectException | HttpConnectTimeoutException e){
+                // We never reached Daraja, so retrying cannot send the customer a second prompt
                 if (attempts < MAX_ATTEMPTS){
-                    sleep(RETRY_DELAY_MS);
+                    Thread.sleep(RETRY_DELAY_MS);
                     continue;
                 }
 
                 return StkResult.failure("Network failure after " + attempts + " attempts: " + e.getMessage());
 
+            } catch (IOException e){
+                // The request may have reached Daraja (e.g. timed out waiting for the reply), so a
+                // retry could prompt the customer twice. Don't retry.
+                return StkResult.failure("Network failure after sending STK push: " + e.getMessage());
             }
         }
         return StkResult.failure("Exhausted retry attempts");
@@ -129,7 +148,7 @@ public class DarajaStkClient {
 
         //Dara level
         // Did data accept the request
-        if (!darajaResponse.ResponseCode().equals("0")){
+        if (!"0".equals(darajaResponse.ResponseCode())){
             return StkResult.failure(darajaResponse.ResponseDescription());
         }
 
