@@ -1,6 +1,7 @@
 package io.github.darlene.utilitypaymentplatform.token;
 
 
+import io.github.darlene.utilitypaymentplatform.meter.MeterType;
 import io.github.darlene.utilitypaymentplatform.token.tokenissuer.TokenIssuer;
 
 import java.math.BigDecimal;
@@ -20,12 +21,12 @@ public class SimulatedTokenIssuer implements TokenIssuer {
     }
 
     @Override
-    public MeterType supportedMeterType() {
+    public MeterType type() {
         return type;
     }
 
     @Override
-    public TokenResult issueToken(String meterNumber, BigDecimal amount) {
+    public TokenResult issueToken(String meterNumber, BigDecimal amount, String reference) {
         simulateLatency();
 
         if (ThreadLocalRandom.current().nextDouble() < failureRate) {
