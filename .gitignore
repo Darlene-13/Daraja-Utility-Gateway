@@ -1,0 +1,3 @@
+# Local Claude Code settings and MCP config, never committed
+.claude/
+.mcp.json

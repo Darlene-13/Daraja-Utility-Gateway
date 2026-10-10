@@ -186,7 +186,8 @@ The ngrok inspector showed one request from AT per key press, all in one session
 
 The phone number arrived as `+2547XXXXX706` and was normalised to `2547XXXXX706`.
 A transaction was created and **Daraja accepted the STK push** (CheckoutRequestID
-`ws_CO_1110202600225647XXXXX706`), so USSD to Daraja works.
+`ws_CO_1110202600225647XXXXX706`). The USSD channel works: menu, validation, phone
+normalisation and payment creation all behaved as designed.
 
 **The prompt never reached the phone,** and no callback arrived. At the time of writing
 (00:31) the transaction was still `PENDING_CONFIRMATION`: the reconciliation job had not
@@ -205,8 +206,8 @@ Two possible causes, not yet told apart:
 - **Customer cannot see the token.** It is stored on the transaction, but
   `GET /api/v1/payment/{id}` does not return it and no SMS is sent yet. Delivery comes
   with the notification service (Go), sending SMS through Africa's Talking.
-- **A USSD payment through to a token.** The USSD path reached Daraja but the one live
-  attempt got no prompt (see above).
+- **STK prompt after a USSD payment.** The USSD channel works and Daraja accepts the
+  push, but the M-Pesa prompt did not reach the phone (see above).
 - **Real token providers.** Tokens come from `SimulatedTokenIssuer`.
 - **Load and concurrency.** One payment at a time was tested.
 - **Callback hardening** described in Architecture.md (IP allowlist, secret in the
