@@ -14,7 +14,9 @@ ends up with a token or with a person looking at their case, never silently stuc
 
 Version 1 works end to end against the Daraja sandbox: STK push -> callback -> token in
 about 13 seconds, with a real KES 1 payment. A USSD menu (Africa's Talking sandbox) is a
-second way in and reaches Daraja through the same payment flow.
+second way in. It works: the menu, validation and payment all run, and Daraja accepts the
+STK push. The one open issue is that the M-Pesa prompt does not reach the phone when the
+payment starts from USSD.
 
 **This project is paused here.** Its goal was to learn and test Safaricom STK push end to
 end, and that goal is met. Work resumes once the Go notification service exists, so tokens
@@ -281,3 +283,6 @@ When the project resumes:
 6. **Small cleanups:** remove the empty `Transaction.setToken(String, BigDecimal, String)`,
    and the stray `//p;` in `UssdMenuService`.
 7. Items from the "Not built yet" table above.
+
+## WRITTEN BY:
+Darlene Wendy
