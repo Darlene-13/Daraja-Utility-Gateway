@@ -20,12 +20,12 @@ payment starts from USSD.
 
 **This project is paused here.** Its goal was to learn and test Safaricom STK push end to
 end, and that goal is met. Work resumes once the Go notification service exists, so tokens
-can be sent to customers by SMS. See [Next steps](#next-steps).
+can be sent to customers by SMS.
 
 | Built | Not built yet |
 |---|---|
 | Payment API with per-phone rate limiting and one-pending-payment guard | Token delivery to the customer (SMS, via a separate Go notification service) |
-| STK push, retried only when Daraja was never reached | STK push sent after the USSD session closes (see Next steps) |
+| STK push, retried only when Daraja was never reached | STK push sent after the USSD session closes |
 | Callback receiver -> Redis stream -> worker with dedupe, retries and dead-lettering | Real KPLC / water provider integration (tokens are simulated) |
 | Transactional outbox -> Redis streams | Callback hardening (IP allowlist, secret path) |
 | Token worker with idempotency key, retries and dead-lettering | Correlation id propagation through logs, PII masking in logs |
